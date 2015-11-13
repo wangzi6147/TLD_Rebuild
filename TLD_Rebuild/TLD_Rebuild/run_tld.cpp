@@ -258,16 +258,16 @@ int main(int argc, char * argv[]){
 	Sleep(1000);
 
 	//media stream
-	//nManager.initMediaStream();
+	nManager.initMediaStream();
 
-	/*while (nManager.getFrame().data == NULL){
+	while (nManager.getFrame().data == NULL){
 		Sleep(1000);
 		continue;
-		}*/
+		}
 
-	while (fromfile&&capture.read(first)){
-	//while (nManager.getFrame().data != NULL){
-		//first = nManager.getFrame();
+	//while (fromfile&&capture.read(first)){
+	while (nManager.getFrame().data != NULL){
+		first = nManager.getFrame();
 		resize(first, first, size);
 		imshow("TLD", first);
 		////test control
@@ -281,9 +281,9 @@ int main(int argc, char * argv[]){
 	}
 
 
-	while (fromfile&&capture.read(first)){
-	//while (nManager.getFrame().data != NULL){
-		//first = nManager.getFrame();
+	//while (fromfile&&capture.read(first)){
+	while (nManager.getFrame().data != NULL){
+		first = nManager.getFrame();
 		resize(first, first, size);
 		pMOG2->operator()(first, fgMaskMOG2, -0.1);
 		erode(fgMaskMOG2, fgMaskMOG2, getStructuringElement(0, Size(2 * centerP + 1, 2 * centerP + 1), Point(centerP, centerP)));
@@ -364,9 +364,9 @@ GETBOUNDINGBOX:
 	int frames = 1;
 	int detections = 1;
 REPEAT:
-	while((fromfile && capture.read(frame)) || !fromfile){
-	//while (nManager.getFrame().data != NULL){
-		//frame = nManager.getFrame();
+	//while((fromfile && capture.read(frame)) || !fromfile){
+	while (nManager.getFrame().data != NULL){
+		frame = nManager.getFrame();
 		if (!fromfile) {
 			while (!VI.isFrameNew(device));
 			VI.getPixels(device, framePixels, false, true);

@@ -9,11 +9,9 @@
 
 struct callbackHandler
 {
-	ffmpegDecode decoder;
-	cv::Mat frame;
-	callbackHandler(ffmpegDecode decoder, cv::Mat frame){
-		this->decoder = decoder;
-		this->frame = frame;
+	ffmpegDecode decoder = ffmpegDecode("rtsp://admin:12345@192.168.0.99/");
+	cv::Mat CBframe;
+	callbackHandler(){
 	}
 };
 
@@ -21,6 +19,7 @@ class NSSTManager{
 private:
 	NsstChannel   nsst_channel_;
 	cv::Mat frame;
+	callbackHandler cbHandler;
 public:
 	void initNSST();
 	void initMediaStream();

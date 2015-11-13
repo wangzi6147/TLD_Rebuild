@@ -11,6 +11,9 @@ ffmpegDecode :: ~ffmpegDecode()
 
 ffmpegDecode::ffmpegDecode(char * file)
 {
+	if (file == NULL){
+		return;
+	}
 	pAvFrame = NULL/**pFrameRGB = NULL*/;
 	pFormatCtx = NULL;
 	pCodecCtx = NULL;

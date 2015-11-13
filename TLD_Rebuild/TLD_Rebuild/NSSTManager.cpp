@@ -27,15 +27,15 @@ int CALLBACK MediaStreamCallBack(NsstChannel* nsst_channel,
 	int buffer_size,
 	int user_data)
 {
-	callbackHandler *cHandler = (callbackHandler *)user_data;
+	callbackHandler *cbHandler = (callbackHandler *)user_data;
 	cv::Mat temp;
 	while (temp.data == NULL){
-		if (cHandler->decoder.readOneFrame() < 0)
+		if (cbHandler->decoder.readOneFrame() < 0)
 			break;
-		temp = cHandler->decoder.getDecodedFrame();
+		temp = cbHandler->decoder.getDecodedFrame();
 	}
 	if (temp.data != NULL){
-		cHandler->frame = temp;
+		cbHandler->CBframe = temp;
 	}
 	return 0;
 }
@@ -66,15 +66,15 @@ void NSSTManager::initMediaStream()
 	params.height = 0;
 	NSSTStartTransport(&nsst_channel_, NSST_TCP, &params, 0);
 	NSSTStartPlay(&nsst_channel_);
-	ffmpegDecode decoder = ffmpegDecode("rtsp://admin:12345@192.168.0.99/");//rtsp://admin:123456@192.168.1.252:554/mpeg4cif
-	callbackHandler cHandler = callbackHandler(decoder, frame);
-	NSSTSetMediaStreamCallback(&nsst_channel_, MediaStreamCallBack, (int)&cHandler);
+	//ffmpegDecode decoder = ffmpegDecode("rtsp://admin:12345@192.168.0.99/");//rtsp://admin:123456@192.168.1.252:554/mpeg4cif
+	//cbHandler.decoder = decoder;
+	NSSTSetMediaStreamCallback(&nsst_channel_, MediaStreamCallBack, (int)&cbHandler);
 }
 
 
 cv::Mat NSSTManager::getFrame()
 {
-	return frame;
+	return cbHandler.CBframe;
 }
 
 void NSSTManager::camHandle(int height, int width, bool ifMove, cv::Rect lastbox)
