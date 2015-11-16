@@ -364,6 +364,7 @@ GETBOUNDINGBOX:
 	int frames = 1;
 	int detections = 1;
 REPEAT:
+
 	//while((fromfile && capture.read(frame)) || !fromfile){
 	while (nManager.getFrame().data != NULL){
 		frame = nManager.getFrame();
