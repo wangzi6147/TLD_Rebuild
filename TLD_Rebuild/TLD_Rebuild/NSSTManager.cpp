@@ -1,5 +1,9 @@
 #include <NSSTManager.h>
 
+//decoder
+ffmpegDecode *decoder;
+cv::Mat decodeFrame;
+
 void CALLBACK message_callback(int event_type, NsstEventCommonParam* event_param){
 	switch (event_type){
 		case NSSTEV_LOGIN:

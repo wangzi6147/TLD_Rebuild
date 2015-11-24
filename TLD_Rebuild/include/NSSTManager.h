@@ -7,10 +7,6 @@
 
 #pragma once
 
-//decoder
-extern ffmpegDecode *decoder;
-extern cv::Mat decodeFrame;
-
 class NSSTManager{
 private:
 	NsstChannel   nsst_channel_;

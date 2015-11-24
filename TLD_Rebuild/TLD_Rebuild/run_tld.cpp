@@ -27,6 +27,8 @@ bool rep = false;
 bool fromfile = false;
 string video;
 
+extern cv::Mat decodeFrame;
+
 
 void readBB(char* file){
 	ifstream bb_file(file);
