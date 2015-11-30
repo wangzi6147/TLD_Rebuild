@@ -14,7 +14,7 @@
 #pragma comment(lib, "nss_toolkit.lib")
 #pragma comment(lib, "videoInput.lib")
 
-//#define FROM_CAMERA
+#define FROM_CAMERA
 
 using namespace cv;
 using namespace std;
