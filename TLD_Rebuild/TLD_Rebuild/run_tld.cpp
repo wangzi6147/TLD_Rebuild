@@ -14,7 +14,7 @@
 #pragma comment(lib, "nss_toolkit.lib")
 #pragma comment(lib, "videoInput.lib")
 
-
+//#define FROM_CAMERA
 
 using namespace cv;
 using namespace std;
@@ -262,14 +262,19 @@ int main(int argc, char * argv[]){
 	//media stream
 	nManager.initMediaStream();
 
+#ifdef FROM_CAMERA
 	while (decodeFrame.data == NULL){
 		Sleep(1000);
 		continue;
-		}
+	}
+#endif // FROM_CAMERA
 
-	//while (fromfile&&capture.read(first)){
+#ifdef FROM_CAMERA
 	while (decodeFrame.data != NULL){
 		first = decodeFrame;
+#else
+	while (fromfile&&capture.read(first)){
+#endif // fromCamera
 		resize(first, first, size);
 		imshow("TLD", first);
 		////test control
@@ -283,9 +288,12 @@ int main(int argc, char * argv[]){
 	}
 
 
-	//while (fromfile&&capture.read(first)){
+#ifdef fromCamera
 	while (decodeFrame.data != NULL){
 		first = decodeFrame;
+#else
+	while (fromfile&&capture.read(first)){
+#endif // fromCamera
 		resize(first, first, size);
 		pMOG2->operator()(first, fgMaskMOG2, -0.1);
 		erode(fgMaskMOG2, fgMaskMOG2, getStructuringElement(0, Size(2 * centerP + 1, 2 * centerP + 1), Point(centerP, centerP)));
@@ -367,9 +375,12 @@ GETBOUNDINGBOX:
 	int detections = 1;
 REPEAT:
 
-	//while((fromfile && capture.read(frame)) || !fromfile){
+#ifdef fromCamera
 	while (decodeFrame.data != NULL){
-		frame = decodeFrame;
+		first = decodeFrame;
+#else
+	while((fromfile && capture.read(frame)) || !fromfile){
+#endif // fromCamera
 		if (!fromfile) {
 			while (!VI.isFrameNew(device));
 			VI.getPixels(device, framePixels, false, true);
