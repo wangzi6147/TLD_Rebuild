@@ -288,7 +288,7 @@ int main(int argc, char * argv[]){
 	}
 
 
-#ifdef fromCamera
+#ifdef FROM_CAMERA
 	while (decodeFrame.data != NULL){
 		first = decodeFrame;
 #else
@@ -345,6 +345,7 @@ int main(int argc, char * argv[]){
 GETBOUNDINGBOX:
 	while (!gotBB)
 	{
+		resize(first, first, size);
 		first.copyTo(frame);
 		cvtColor(frame, last_gray, CV_RGB2GRAY);
 		drawBox(frame, box);
@@ -375,9 +376,9 @@ GETBOUNDINGBOX:
 	int detections = 1;
 REPEAT:
 
-#ifdef fromCamera
+#ifdef FROM_CAMERA
 	while (decodeFrame.data != NULL){
-		first = decodeFrame;
+		frame = decodeFrame;
 #else
 	while((fromfile && capture.read(frame)) || !fromfile){
 #endif // fromCamera
