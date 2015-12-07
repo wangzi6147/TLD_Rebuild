@@ -1,4 +1,4 @@
-#include <opencv2/opencv.hpp>
+ï»¿#include <opencv2/opencv.hpp>
 #include <tld_utils.h>
 #include <iostream>
 #include <sstream>
@@ -7,6 +7,8 @@
 #include <videoInput.h>
 #include <ffmpegDecode.h>
 #include <NSSTManager.h>
+#include <DShow.h>
+#include <strmif.h>
 
 #pragma comment(linker, "/NODEFAULTLIB:atlthunk.lib")
 #pragma comment(linker, "/NODEFAULTLIB:libcmt.lib")
@@ -179,6 +181,74 @@ void humanDetect(IplImage* img, std::vector<cv::Rect>& regions)
 	cvReleaseImage(&small_img);
 }
 
+
+HRESULT FindCaptureDevice(IBaseFilter ** ppSrcFilter)
+{
+	HRESULT hr;
+	IBaseFilter * pSrc = NULL;
+	IMoniker *pMoniker = NULL;
+	ULONG cFetched;
+
+	if (!ppSrcFilter)
+		return E_POINTER;
+
+	// Create the system device enumerator
+	ICreateDevEnum *pDevEnum = NULL;
+
+	hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC,
+		IID_ICreateDevEnum, (void **)&pDevEnum);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	// Create an enumerator for the video capture devices
+	IEnumMoniker *pClassEnum = NULL;
+
+	hr = pDevEnum->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &pClassEnum, 0);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	// If there are no enumerators for the requested type, then 
+	// CreateClassEnumerator will succeed, but pClassEnum will be NULL.
+	if (pClassEnum == NULL)
+	{
+		return E_FAIL;
+	}
+
+	// Use the first video capture device on the device list.
+	// Note that if the Next() call succeeds but there are no monikers,
+	// it will return S_FALSE (which is not a failure).  Therefore, we
+	// check that the return code is S_OK instead of using SUCCEEDED() macro.
+	if (S_OK == (pClassEnum->Next(1, &pMoniker, &cFetched)))
+	{
+		IBindCtx *pbc = NULL;
+
+		CreateBindCtx(0, &pbc);
+		// Bind Moniker to a filter object
+		hr = pMoniker->BindToObject(pbc, 0, IID_IBaseFilter, (void**)&pSrc);
+		pbc->Release();
+		if (FAILED(hr))
+		{
+			return hr;
+		}
+	}
+	else
+	{
+		return E_FAIL;
+	}
+
+	// Copy the found filter pointer to the output parameter.
+	// Do NOT Release() the reference, since it will still be used
+	// by the calling function.
+	*ppSrcFilter = pSrc;
+
+	return hr;
+}
+
+
 int main(int argc, char * argv[]){
 	cvReleaseHaarClassifierCascade(&cascade);
 	cascade = (CvHaarClassifierCascade*)cvLoad(cascade_name, 0, 0, 0);
@@ -188,6 +258,19 @@ int main(int argc, char * argv[]){
 	nManager.initNSST();
 	//create a videoInput object
 	videoInput VI;
+
+	/************************************************************************/
+	/* Test IAMCameraControl                                                */
+	IBaseFilter *pVideoSource = NULL;
+	IAMCameraControl *pCamControl = NULL;
+	HRESULT hr = S_OK;
+	hr = FindCaptureDevice(&pVideoSource);
+	hr = pVideoSource->QueryInterface(IID_IAMCameraControl, (void**)&pCamControl);
+	long Min, Max, Step, Default, Flags, Val;
+	hr = pCamControl->GetRange(CameraControl_Pan, &Min, &Max, &Step, &Default, &Flags);
+	hr = pCamControl->Get(CameraControl_Pan, &Val, &Flags);
+	hr = pCamControl->Set(CameraControl_Pan, Min, Flags);
+	/************************************************************************/
 
 	//Prints out a list of available devices and returns num of devices found
 	int numDevices = VI.listDevices();
@@ -232,8 +315,8 @@ int main(int argc, char * argv[]){
 	int centerP = 3;
 	//HOG
 	Mat ROI;
-	//cv::HOGDescriptor hog; // ²ÉÓÃÄ¬ÈÏ²ÎÊı
-	//hog.setSVMDetector(cv::HOGDescriptor::getDefaultPeopleDetector());  // ²ÉÓÃÒÑ¾­ÑµÁ·ºÃµÄĞĞÈË¼ì²â·ÖÀàÆ÷
+	//cv::HOGDescriptor hog; // é‡‡ç”¨é»˜è®¤å‚æ•°
+	//hog.setSVMDetector(cv::HOGDescriptor::getDefaultPeopleDetector());  // é‡‡ç”¨å·²ç»è®­ç»ƒå¥½çš„è¡Œäººæ£€æµ‹åˆ†ç±»å™¨
 	std::vector<cv::Rect> regions;
 	//TLD framework
 	TLD tld;
@@ -345,6 +428,7 @@ int main(int argc, char * argv[]){
 GETBOUNDINGBOX:
 	while (!gotBB)
 	{
+		resize(first, first, size);
 		first.copyTo(frame);
 		cvtColor(frame, last_gray, CV_RGB2GRAY);
 		drawBox(frame, box);
