@@ -82,7 +82,7 @@ void NSSTManager::initMediaStream()
 void NSSTManager::camHandle(int height, int width, bool ifMove, cv::Rect lastbox)
 {
 	NsstPTZParam param;
-	param.speed = 40;
+	param.speed = 20;
 	if (!ifMove){
 		param.action = NS_PTZ_MOVE_STOP;
 		NSSTPTZControl(&nsst_channel_, &param);

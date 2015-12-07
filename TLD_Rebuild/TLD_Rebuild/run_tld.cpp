@@ -16,7 +16,7 @@
 #pragma comment(lib, "nss_toolkit.lib")
 #pragma comment(lib, "videoInput.lib")
 
-//#define FROM_CAMERA
+#define FROM_CAMERA
 
 using namespace cv;
 using namespace std;
@@ -371,7 +371,7 @@ int main(int argc, char * argv[]){
 	}
 
 
-#ifdef fromCamera
+#ifdef FROM_CAMERA
 	while (decodeFrame.data != NULL){
 		first = decodeFrame;
 #else
@@ -459,9 +459,9 @@ GETBOUNDINGBOX:
 	int detections = 1;
 REPEAT:
 
-#ifdef fromCamera
+#ifdef FROM_CAMERA
 	while (decodeFrame.data != NULL){
-		first = decodeFrame;
+		frame = decodeFrame;
 #else
 	while((fromfile && capture.read(frame)) || !fromfile){
 #endif // fromCamera
