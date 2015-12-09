@@ -229,7 +229,7 @@ int main(int argc, char * argv[]){
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
 	Rect r;
-	int centerP = 3;
+	int centerP = 2;
 	//HOG
 	Mat ROI;
 	//cv::HOGDescriptor hog; // 采用默认参数
@@ -307,6 +307,8 @@ int main(int argc, char * argv[]){
 				continue;
 			}
 			r = boundingRect(contours[i]);
+			int temp = r.y>r.height / 3 ? r.y - r.height/3 : 0;
+			r = Rect(cvPoint(r.x, temp), cvPoint(r.x + r.width, r.y + r.height));
 			ROI = first(r);
 			regions.clear();
 			if (ROI.cols >= 32 && ROI.rows >= 32)

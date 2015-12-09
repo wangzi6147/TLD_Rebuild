@@ -11,6 +11,8 @@
 using namespace cv;
 using namespace std;
 
+BackgroundSubtractor *pMOG2;
+
 
 TLD::TLD()
 {
@@ -124,6 +126,7 @@ void TLD::init(const Mat& frame1, const Rect& box, FILE* bb_file, NSSTManager nM
 	classifier.trainNN(nn_data);
 	///Threshold Evaluation on testing sets
 	classifier.evaluateTh(nXT, nExT);
+	pMOG2 = NULL;
 }
 
 /* Generate Positive data
@@ -372,15 +375,57 @@ void TLD::processFrame(const cv::Mat& img1, const cv::Mat& img2, vector<Point2f>
 	if (lastboxfound){
 		fprintf(bb_file, "%d,%d,%d,%d,%f\n", lastbox.x, lastbox.y, lastbox.br().x, lastbox.br().y, lastconf);
 		nManager.camHandle(img2.rows, img2.cols, true, lastbox);
+		if (pMOG2 != NULL)
+		{
+			delete pMOG2;
+			pMOG2 = NULL;
+		}
 	}
 	else{
 		vector<cv::Rect> regions;
 		regions.clear();
 		IplImage* detectimg = cvCreateImage(cvSize(img2.cols, img2.rows), IPL_DEPTH_8U, 3);
 		*detectimg = img2;
-		humanDetect(detectimg, regions);
+
+		if (pMOG2 == NULL)
+			pMOG2 = new BackgroundSubtractorMOG2();
+		Mat frameMog2;/*
+		resize(frameMog2, frameMog2, Size(img2.cols, img2.rows));*/
+		pMOG2->operator()(img2, frameMog2, -0.1);
+		int centerP = 2;
+		erode(frameMog2, frameMog2, getStructuringElement(0, Size(2 * centerP + 1, 2 * centerP + 1), Point(centerP, centerP)));
+		dilate(frameMog2, frameMog2, getStructuringElement(0, Size(2 * centerP + 1, 2 * centerP + 1), Point(centerP, centerP)));
+		dilate(frameMog2, frameMog2, getStructuringElement(0, Size(2 * centerP + 1, 2 * centerP + 1), Point(centerP, centerP)));
+		vector<vector<Point> > contours;
+		vector<Vec4i> hierarchy;
+		contours.clear();
+		hierarchy.clear();
+		findContours(frameMog2, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+		Rect r;
+		Mat ROI;
+		for (int i = 0; i < contours.size(); i++){
+			if (contourArea(contours[i]) < img2.rows*img2.cols / 40 || contourArea(contours[i]) > img2.rows*img2.cols*0.8){
+				continue;
+			}
+			r = boundingRect(contours[i]);
+			int temp = r.y>r.height / 3 ? r.y - r.height/3 : 0;
+			r = Rect(cvPoint(r.x, temp), cvPoint(r.x + r.width, r.y + r.height));
+			ROI = img2(r);
+			regions.clear();
+			if (ROI.cols >= 32 && ROI.rows >= 32)
+			{
+				IplImage* img = cvCreateImage(cvSize(frameMog2.cols, frameMog2.rows), IPL_DEPTH_8U, 3);
+				*img = ROI;
+				humanDetect(img, regions);
+				rectangle(frameMog2, cv::Point(r.x, r.y), cv::Point(r.x + r.width, r.y + r.height), cv::Scalar(255, 255, 255), 1);
+			}
+		}
+
+
 		if (regions.size() > 0){
 			lastbox = regions[0];
+			lastbox = Rect(cv::Point(r.x + regions[0].x, r.y + regions[0].y), cv::Point(r.x + regions[0].x + regions[0].width, r.y + regions[0].y + regions[0].height));
+			lastbox = Rect(cv::Point(lastbox.x + lastbox.width / 5, lastbox.y), cv::Point(lastbox.x + lastbox.width * 4 / 5, lastbox.y + lastbox.height));
 			fprintf(bb_file, "face %d,%d,%d,%d,%f\n", lastbox.x, lastbox.y, lastbox.br().x, lastbox.br().y, lastconf);
 			nManager.camHandle(img2.rows, img2.cols, true,lastbox);
 			lastboxfound = true;
@@ -389,6 +434,7 @@ void TLD::processFrame(const cv::Mat& img1, const cv::Mat& img2, vector<Point2f>
 			fprintf(bb_file, "NaN,NaN,NaN,NaN,NaN\n");
 			nManager.camHandle(img2.rows, img2.cols, false,lastbox);
 		}
+		imshow("FG Mask MOG 2", frameMog2);
 
 	}
 	if (lastvalid && tl)
