@@ -88,12 +88,27 @@ void NSSTManager::camHandle(int height, int width, bool ifMove, cv::Rect lastbox
 		NSSTPTZControl(&nsst_channel_, &param);
 		return;
 	}
+	//zoom
+	int imgArea = height*width;
+	if (lastbox.area() < imgArea / 20){
+		param.action = NS_PTZ_MOVE_ZOOM_TELE;
+		NSSTPTZControl(&nsst_channel_, &param);
+	}
+	else if (lastbox.area()>imgArea / 10){
+		param.action = NS_PTZ_MOVE_ZOOM_WIDE;
+		NSSTPTZControl(&nsst_channel_, &param);
+	}
+	else{
+		param.action = NS_PTZ_MOVE_STOP;
+		NSSTPTZControl(&nsst_channel_, &param);
+	}
+	
 	int cX = lastbox.x + lastbox.width / 2;
 	int cY = lastbox.y + lastbox.height / 2;
 	int xState = 0;
 	int yState = 0;
-	cv::Rect r = cv::Rect(width / 3, height / 3, width / 3, height / 3);
-
+	//cv::Rect r = cv::Rect(width / 3, height / 3, width / 3, height / 3);
+	cv::Rect r = cv::Rect(width  / 5, height / 5, width *3/ 5, height*3 / 5);
 	//Rect r = Rect(width * 2 / 5, height * 2 / 5, width / 5, height / 5);
 	if (cX < r.x){
 		xState = 1;
