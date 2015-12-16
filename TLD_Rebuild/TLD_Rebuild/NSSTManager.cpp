@@ -32,7 +32,7 @@ int CALLBACK MediaStreamCallBack(NsstChannel* nsst_channel,
 	int user_data)
 {
 	if (decoder == NULL)
-		decoder = new ffmpegDecode("rtsp://admin:12345@192.168.0.99/");//rtsp://admin:123456@192.168.1.252:554/mpeg4cif
+		decoder = new ffmpegDecode("rtsp://admin:admin@192.168.1.50/mpeg4cif");//rtsp://admin:123456@192.168.1.252:554/mpeg4cif
 	cv::Mat temp;
 	while (temp.data == NULL){
 		if (decoder->readOneFrame() < 0)
@@ -49,11 +49,11 @@ NSSTManager::~NSSTManager(){
 }
 
 void NSSTManager::initNSST(){
-	NSSTStartup();
+	int res = NSSTStartup();
 	NSSTSetUserCallback(message_callback, NULL);
 	NsstDevice NSSTdevice;
 	DEVICE_ID device_id_;
-	strcpy(NSSTdevice.host, "192.168.0.99");
+	strcpy(NSSTdevice.host, "192.168.1.50");
 	strcpy(NSSTdevice.username, "admin");
 	strcpy(NSSTdevice.password, "admin");
 	NSSTdevice.protocol_port = 80;
@@ -89,26 +89,30 @@ void NSSTManager::camHandle(int height, int width, bool ifMove, cv::Rect lastbox
 		return;
 	}
 	//zoom
-	int imgArea = height*width;
+	/*int imgArea = height*width;
 	if (lastbox.area() < imgArea / 20){
-		param.action = NS_PTZ_MOVE_ZOOM_TELE;
-		NSSTPTZControl(&nsst_channel_, &param);
-	}
-	else if (lastbox.area()>imgArea / 10){
+		param.speed = 50;
 		param.action = NS_PTZ_MOVE_ZOOM_WIDE;
 		NSSTPTZControl(&nsst_channel_, &param);
+		return;
+	}
+	else if (lastbox.area()>imgArea / 10){
+		param.speed = 50;
+		param.action = NS_PTZ_MOVE_ZOOM_TELE;
+		NSSTPTZControl(&nsst_channel_, &param);
+		return;
 	}
 	else{
 		param.action = NS_PTZ_MOVE_STOP;
 		NSSTPTZControl(&nsst_channel_, &param);
-	}
+	}*/
 	
 	int cX = lastbox.x + lastbox.width / 2;
 	int cY = lastbox.y + lastbox.height / 2;
 	int xState = 0;
 	int yState = 0;
-	//cv::Rect r = cv::Rect(width / 3, height / 3, width / 3, height / 3);
-	cv::Rect r = cv::Rect(width  / 5, height / 5, width *3/ 5, height*3 / 5);
+	cv::Rect r = cv::Rect(width / 3, height / 3, width / 3, height / 3);
+	//cv::Rect r = cv::Rect(width  / 5, height / 5, width *3/ 5, height*3 / 5);
 	//Rect r = Rect(width * 2 / 5, height * 2 / 5, width / 5, height / 5);
 	if (cX < r.x){
 		xState = 1;

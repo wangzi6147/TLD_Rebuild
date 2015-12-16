@@ -16,7 +16,7 @@
 #pragma comment(lib, "nss_toolkit.lib")
 #pragma comment(lib, "videoInput.lib")
 
-#define FROM_CAMERA
+//#define FROM_CAMERA
 
 using namespace cv;
 using namespace std;
@@ -258,19 +258,6 @@ int main(int argc, char * argv[]){
 	nManager.initNSST();
 	//create a videoInput object
 	videoInput VI;
-
-	/************************************************************************/
-	/* Test IAMCameraControl                                                */
-	IBaseFilter *pVideoSource = NULL;
-	IAMCameraControl *pCamControl = NULL;
-	HRESULT hr = S_OK;
-	hr = FindCaptureDevice(&pVideoSource);
-	hr = pVideoSource->QueryInterface(IID_IAMCameraControl, (void**)&pCamControl);
-	long Min, Max, Step, Default, Flags, Val;
-	hr = pCamControl->GetRange(CameraControl_Pan, &Min, &Max, &Step, &Default, &Flags);
-	hr = pCamControl->Get(CameraControl_Pan, &Val, &Flags);
-	hr = pCamControl->Set(CameraControl_Pan, Min, Flags);
-	/************************************************************************/
 
 	//Prints out a list of available devices and returns num of devices found
 	int numDevices = VI.listDevices();
