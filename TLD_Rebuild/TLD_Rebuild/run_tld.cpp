@@ -1,22 +1,23 @@
-﻿#include <opencv2/opencv.hpp>
+﻿#include "stdafx.h"
+#include <opencv2/opencv.hpp>
 #include <tld_utils.h>
 #include <iostream>
 #include <sstream>
 #include <TLD.h>
-#include <stdio.h>
 #include <videoInput.h>
 #include <ffmpegDecode.h>
-#include <NSSTManager.h>
+#include <HBManager.h>
 #include <DShow.h>
 #include <strmif.h>
 
 #pragma comment(linker, "/NODEFAULTLIB:atlthunk.lib")
 #pragma comment(linker, "/NODEFAULTLIB:libcmt.lib")
 #pragma comment(lib, "cudart.lib")
-#pragma comment(lib, "nss_toolkit.lib")
+#pragma comment(lib, "7000sdk.lib")
+#pragma comment(lib, "HBPlaySDK.lib")
 #pragma comment(lib, "videoInput.lib")
 
-//#define FROM_CAMERA
+#define FROM_CAMERA
 
 using namespace cv;
 using namespace std;
@@ -254,8 +255,8 @@ int main(int argc, char * argv[]){
 	cascade = (CvHaarClassifierCascade*)cvLoad(cascade_name, 0, 0, 0);
 	storage = cvCreateMemStorage(0);
 	//NSST init
-	NSSTManager nManager;
-	nManager.initNSST();
+	HBManager nManager;
+	nManager.initHB();
 	//create a videoInput object
 	videoInput VI;
 

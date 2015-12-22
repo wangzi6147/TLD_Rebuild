@@ -5,8 +5,8 @@
  *      Author: alantrrs
  */
 
+#include "stdafx.h"
 #include <opencv2/opencv.hpp>
-#include <stdio.h>
 class FerNNClassifier{
 private:
   float valid;

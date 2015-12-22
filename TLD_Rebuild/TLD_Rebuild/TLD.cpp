@@ -5,8 +5,8 @@
 *      Author: alantrrs
 */
 
+#include "stdafx.h"
 #include <TLD.h>
-#include <stdio.h>
 #include <kernel.h>
 using namespace cv;
 using namespace std;
@@ -46,7 +46,7 @@ void TLD::read(const FileNode& file){
 	classifier.read(file);
 }
 
-void TLD::init(const Mat& frame1, const Rect& box, FILE* bb_file, NSSTManager nManager){
+void TLD::init(const Mat& frame1, const Rect& box, FILE* bb_file, HBManager nManager){
 	this->nManager = nManager;
 	//bb_file = fopen("bounding_boxes.txt","w");
 	//Get Bounding Boxes
