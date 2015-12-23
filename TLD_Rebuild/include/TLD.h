@@ -109,6 +109,10 @@ private:
 
   HBManager nManager;
 
+
+  std::vector<std::vector<cv::Point> > contours;
+  std::vector<cv::Vec4i> hierarchy;
+
 public:
 	//Bounding Boxes
 	std::vector<BoundingBox> grid;

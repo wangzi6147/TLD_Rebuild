@@ -130,89 +130,82 @@ void HBManager::camHandle(int height, int width, bool ifMove, cv::Rect lastbox)
 {
 	//NsstPTZParam param;
 	//param.speed = 20;
-	//if (!ifMove){
-	//	param.action = NS_PTZ_MOVE_STOP;
-	//	NSSTPTZControl(&nsst_channel_, &param);
-	//	return;
-	//}
-	////zoom
-	///*int imgArea = height*width;
-	//if (lastbox.area() < imgArea / 20){
-	//	param.speed = 50;
-	//	param.action = NS_PTZ_MOVE_ZOOM_WIDE;
-	//	NSSTPTZControl(&nsst_channel_, &param);
-	//	return;
-	//}
-	//else if (lastbox.area()>imgArea / 10){
-	//	param.speed = 50;
-	//	param.action = NS_PTZ_MOVE_ZOOM_TELE;
-	//	NSSTPTZControl(&nsst_channel_, &param);
-	//	return;
-	//}
-	//else{
-	//	param.action = NS_PTZ_MOVE_STOP;
-	//	NSSTPTZControl(&nsst_channel_, &param);
-	//}*/
-	//
-	//int cX = lastbox.x + lastbox.width / 2;
-	//int cY = lastbox.y + lastbox.height / 2;
-	//int xState = 0;
-	//int yState = 0;
-	//cv::Rect r = cv::Rect(width / 3, height / 3, width / 3, height / 3);
-	////cv::Rect r = cv::Rect(width  / 5, height / 5, width *3/ 5, height*3 / 5);
-	////Rect r = Rect(width * 2 / 5, height * 2 / 5, width / 5, height / 5);
-	//if (cX < r.x){
-	//	xState = 1;
-	//}
-	//else if (cX>r.br().x){
-	//	xState = 2;
-	//}
-	//if (cY < r.y){
-	//	yState = 1;
-	//}
-	//else if (cY>r.br().y){
-	//	yState = 2;
-	//}
-	//int state = (xState << 2) + yState;
-	//switch (state)
-	//{
-	//case 0x00:
-	//	param.action = NS_PTZ_MOVE_STOP;
-	//	NSSTPTZControl(&nsst_channel_, &param);
-	//	break;
-	//case 0x0A:
-	//	param.action = NS_PTZ_MOVE_RIGHT_DOWN;
-	//	NSSTPTZControl(&nsst_channel_, &param);
-	//	break;
-	//case 0x02:
-	//	param.action = NS_PTZ_MOVE_DOWN;
-	//	NSSTPTZControl(&nsst_channel_, &param);
-	//	break;
-	//case 0x08:
-	//	param.action = NS_PTZ_MOVE_RIGHT;
-	//	NSSTPTZControl(&nsst_channel_, &param);
-	//	break;
-	//case 0x04:
-	//	param.action = NS_PTZ_MOVE_LEFT;
-	//	NSSTPTZControl(&nsst_channel_, &param);
-	//	break;
-	//case 0x09:
-	//	param.action = NS_PTZ_MOVE_RIGHT_UP;
-	//	NSSTPTZControl(&nsst_channel_, &param);
-	//	break;
-	//case 0x06:
-	//	param.action = NS_PTZ_MOVE_LEFT_DOWN;
-	//	NSSTPTZControl(&nsst_channel_, &param);
-	//	break;
-	//case 0x01:
-	//	param.action = NS_PTZ_MOVE_UP;
-	//	NSSTPTZControl(&nsst_channel_, &param);
-	//	break;
-	//case 0x05:
-	//	param.action = NS_PTZ_MOVE_LEFT_UP;
-	//	NSSTPTZControl(&nsst_channel_, &param);
-	//	break;
-	//default:
-	//	break;
-	//}
+	DWORD dwPTZCommand;
+	int speed = 50;
+	if (!ifMove){
+		HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, NULL, 1, 0);
+		return;
+	}
+	//zoom
+	/*int imgArea = height*width;
+	if (lastbox.area() < imgArea / 20){
+		param.speed = 50;
+		param.action = NS_PTZ_MOVE_ZOOM_WIDE;
+		NSSTPTZControl(&nsst_channel_, &param);
+		return;
+	}
+	else if (lastbox.area()>imgArea / 10){
+		param.speed = 50;
+		param.action = NS_PTZ_MOVE_ZOOM_TELE;
+		NSSTPTZControl(&nsst_channel_, &param);
+		return;
+	}
+	else{
+		param.action = NS_PTZ_MOVE_STOP;
+		NSSTPTZControl(&nsst_channel_, &param);
+	}*/
+	
+	int cX = lastbox.x + lastbox.width / 2;
+	int cY = lastbox.y + lastbox.height / 2;
+	int xState = 0;
+	int yState = 0;
+	cv::Rect r = cv::Rect(width / 3, height / 3, width / 3, height / 3);
+	//cv::Rect r = cv::Rect(width  / 5, height / 5, width *3/ 5, height*3 / 5);
+	//Rect r = Rect(width * 2 / 5, height * 2 / 5, width / 5, height / 5);
+	if (cX < r.x){
+		xState = 1;
+	}
+	else if (cX>r.br().x){
+		xState = 2;
+	}
+	if (cY < r.y){
+		yState = 1;
+	}
+	else if (cY>r.br().y){
+		yState = 2;
+	}
+	int state = (xState << 2) + yState;
+	switch (state)
+	{
+	case 0x00:
+		dwPTZCommand = NULL;
+		break;
+	case 0x0A:
+		dwPTZCommand = TILT_RIGHT_DOWN;
+		break;
+	case 0x02:
+		dwPTZCommand = TILT_DOWN;
+		break;
+	case 0x08:
+		dwPTZCommand = PAN_RIGHT;
+		break;
+	case 0x04:
+		dwPTZCommand = PAN_LEFT;
+		break;
+	case 0x09:
+		dwPTZCommand = TILT_RIGHT_UP;
+		break;
+	case 0x06:
+		dwPTZCommand = TILT_LEFT_DOWN;
+		break;
+	case 0x01:
+		dwPTZCommand = TILT_UP;
+		break;
+	case 0x05:
+		dwPTZCommand = TILT_LEFT_UP;
+		break;
+	default:
+		break;
+	}
+	HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, dwPTZCommand, 0, speed);
 }

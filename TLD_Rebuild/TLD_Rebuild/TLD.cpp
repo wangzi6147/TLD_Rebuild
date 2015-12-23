@@ -393,11 +393,10 @@ void TLD::processFrame(const cv::Mat& img1, const cv::Mat& img2, vector<Point2f>
 		resize(frameMog2, frameMog2, Size(img2.cols, img2.rows));*/
 		pMOG2->operator()(img2, frameMog2, -0.1);
 		int centerP = 2;
+
 		erode(frameMog2, frameMog2, getStructuringElement(0, Size(2 * centerP + 1, 2 * centerP + 1), Point(centerP, centerP)));
 		dilate(frameMog2, frameMog2, getStructuringElement(0, Size(2 * centerP + 1, 2 * centerP + 1), Point(centerP, centerP)));
 		dilate(frameMog2, frameMog2, getStructuringElement(0, Size(2 * centerP + 1, 2 * centerP + 1), Point(centerP, centerP)));
-		vector<vector<Point> > contours;
-		vector<Vec4i> hierarchy;
 		contours.clear();
 		hierarchy.clear();
 		findContours(frameMog2, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
@@ -408,7 +407,7 @@ void TLD::processFrame(const cv::Mat& img1, const cv::Mat& img2, vector<Point2f>
 				continue;
 			}
 			r = boundingRect(contours[i]);
-			int temp = r.y>r.height / 3 ? r.y - r.height/3 : 0;
+			int temp = r.y>r.height / 3 ? r.y - r.height / 3 : 0;
 			r = Rect(cvPoint(r.x, temp), cvPoint(r.x + r.width, r.y + r.height));
 			ROI = img2(r);
 			regions.clear();
@@ -427,12 +426,12 @@ void TLD::processFrame(const cv::Mat& img1, const cv::Mat& img2, vector<Point2f>
 			lastbox = Rect(cv::Point(r.x + regions[0].x, r.y + regions[0].y), cv::Point(r.x + regions[0].x + regions[0].width, r.y + regions[0].y + regions[0].height));
 			lastbox = Rect(cv::Point(lastbox.x + lastbox.width / 5, lastbox.y), cv::Point(lastbox.x + lastbox.width * 4 / 5, lastbox.y + lastbox.height));
 			fprintf(bb_file, "face %d,%d,%d,%d,%f\n", lastbox.x, lastbox.y, lastbox.br().x, lastbox.br().y, lastconf);
-			nManager.camHandle(img2.rows, img2.cols, true,lastbox);
+			nManager.camHandle(img2.rows, img2.cols, true, lastbox);
 			lastboxfound = true;
 		}
 		else{
 			fprintf(bb_file, "NaN,NaN,NaN,NaN,NaN\n");
-			nManager.camHandle(img2.rows, img2.cols, false,lastbox);
+			nManager.camHandle(img2.rows, img2.cols, false, lastbox);
 		}
 		imshow("FG Mask MOG 2", frameMog2);
 
