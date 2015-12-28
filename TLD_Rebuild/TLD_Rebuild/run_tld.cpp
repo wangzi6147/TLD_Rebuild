@@ -11,7 +11,6 @@
 #include <strmif.h>
 
 #pragma comment(linker, "/NODEFAULTLIB:atlthunk.lib")
-#pragma comment(linker, "/NODEFAULTLIB:libcmt.lib")
 #pragma comment(lib, "cudart.lib")
 #pragma comment(lib, "7000sdk.lib")
 #pragma comment(lib, "HBPlaySDK.lib")
@@ -297,7 +296,7 @@ int main(int argc, char * argv[]){
 	//MOG2
 	BackgroundSubtractor *pMOG2 = new BackgroundSubtractorMOG2();
 	Mat fgMaskMOG2;
-	vector<vector<Point> > contours;
+	vector<vector<Point>> contours;
 	vector<Vec4i> hierarchy;
 	Rect r;
 	int centerP = 2;
@@ -370,8 +369,12 @@ int main(int argc, char * argv[]){
 		erode(fgMaskMOG2, fgMaskMOG2, getStructuringElement(0, Size(2 * centerP + 1, 2 * centerP + 1), Point(centerP, centerP)));
 		dilate(fgMaskMOG2, fgMaskMOG2, getStructuringElement(0, Size(2 * centerP + 1, 2 * centerP + 1), Point(centerP, centerP)));
 		dilate(fgMaskMOG2, fgMaskMOG2, getStructuringElement(0, Size(2 * centerP + 1, 2 * centerP + 1), Point(centerP, centerP)));
-		contours.clear();
-		hierarchy.clear();
+		if (contours.size() > 0){
+			contours.clear();
+		}
+		if (hierarchy.size() > 0){
+			hierarchy.clear();
+		}
 		findContours(fgMaskMOG2, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
 		for (int i = 0; i < contours.size(); i++){
 			if (contourArea(contours[i]) < first.rows*first.cols / 40 || contourArea(contours[i]) > first.rows*first.cols*0.8){
