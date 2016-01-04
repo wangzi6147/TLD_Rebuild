@@ -114,6 +114,7 @@ void HBManager::initMediaStream()
 
 	// 设置回调函数
 	HB_SDVR_SetRealDataCallBack(m_lPlayHandle, pfnSrcDataCB, (DWORD)this);
+	HB_SDVR_PTZPreset(m_lPlayHandle, GOTO_PRESET, 61);	
 
 	//DrawParams params;
 	//params.draw_wnd = 0;
@@ -131,11 +132,14 @@ void HBManager::camHandle(int height, int width, bool ifMove, cv::Rect lastbox)
 	//NsstPTZParam param;
 	//param.speed = 20;
 	DWORD dwPTZCommand;
-	int speed = 50;
+	int speed = 30;
 	if (!ifMove){
 		HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, NULL, 1, 0);
+		count++;
+		std::cout << count << std::endl;
 		return;
 	}
+	count = 0;
 	//zoom
 	/*int imgArea = height*width;
 	if (lastbox.area() < imgArea / 20){
@@ -175,10 +179,26 @@ void HBManager::camHandle(int height, int width, bool ifMove, cv::Rect lastbox)
 		yState = 2;
 	}
 	int state = (xState << 2) + yState;
+	float area = lastbox.width*lastbox.height;
 	switch (state)
 	{
 	case 0x00:
 		dwPTZCommand = NULL;
+		HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, dwPTZCommand, 1, speed);
+		if (area < 320 * 240 * 0.02)
+		{
+			dwPTZCommand = FOCUS_NEAR;
+			HB_SDVR_PTZControl_Other(m_lPlayHandle, 0, dwPTZCommand, 0);
+		}
+		else if (area > 320 * 240 * 0.1)
+		{
+			dwPTZCommand = FOCUS_FAR;
+			HB_SDVR_PTZControl_Other(m_lPlayHandle, 0, dwPTZCommand, 0);
+		}
+		else
+		{
+			HB_SDVR_PTZControlWithSpeed_Other(m_lPlayHandle, 0, NULL, 1, speed);
+		}
 		break;
 	case 0x0A:
 		dwPTZCommand = TILT_RIGHT_DOWN;
@@ -205,7 +225,42 @@ void HBManager::camHandle(int height, int width, bool ifMove, cv::Rect lastbox)
 		dwPTZCommand = TILT_LEFT_UP;
 		break;
 	default:
+		//dwPTZCommand = FOCUS_FAR;
+		//HB_SDVR_PTZControl_Other(m_lPlayHandle, 0, dwPTZCommand, 0);
 		break;
 	}
 	HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, dwPTZCommand, 0, speed);
+}
+
+void HBManager::reset(){
+	if (count > 10){
+		count = 0;
+		std::ifstream infile("../../../one_cam/one_cam/one_cam/output.txt");
+		int pos = -1;
+		infile >> pos;
+		std::cout << pos << std::endl << std::endl;
+		if (pos > 0){
+			switch (pos)
+			{
+			case 1:
+			case 4:
+			case 7:
+				HB_SDVR_PTZPreset(m_lPlayHandle, GOTO_PRESET, 62);
+				break;
+			case 2:
+			case 5:
+			case 8:
+				HB_SDVR_PTZPreset(m_lPlayHandle, GOTO_PRESET, 61);
+				break;
+			case 3:
+			case 6:
+			case 9:
+				HB_SDVR_PTZPreset(m_lPlayHandle, GOTO_PRESET, 63);
+				break;
+			default:
+				break;
+			}
+		}
+		infile.close();
+	}
 }

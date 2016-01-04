@@ -432,6 +432,8 @@ void TLD::processFrame(const cv::Mat& img1, const cv::Mat& img2, vector<Point2f>
 		else{
 			fprintf(bb_file, "NaN,NaN,NaN,NaN,NaN\n");
 			nManager.camHandle(img2.rows, img2.cols, false, lastbox);
+			//TODO 根据全景摄像头调整
+			nManager.reset();
 		}
 		imshow("FG Mask MOG 2", frameMog2);
 
