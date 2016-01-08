@@ -47,6 +47,7 @@ bool doing = false;
 //}
 
 
+//回调函数 每次捕捉新的画面
 void CALLBACK pfnSrcDataCB(LONG  lRealHandle,DWORD   dwDataType,BYTE   *pBuffer,DWORD  dwBufSize,DWORD  dwUser){
 	if (doing)
 	{
@@ -75,6 +76,7 @@ void CALLBACK pfnSrcDataCB(LONG  lRealHandle,DWORD   dwDataType,BYTE   *pBuffer,
 HBManager::~HBManager(){
 }
 
+//初始化摄像头
 void HBManager::initHB(){
 	BOOL res = HB_SDVR_Init();
 	m_UserID = HB_SDVR_Login_Ex_Nvs("192.168.1.50", 8101, "admin", "admin", &m_strDeviceInfoEx);
@@ -103,6 +105,7 @@ void HBManager::initHB(){
 	nsst_channel_.stream = 0;*/
 }
 
+//初始化视频
 void HBManager::initMediaStream()
 {
 
@@ -127,6 +130,7 @@ void HBManager::initMediaStream()
 	//NSSTSetMediaStreamCallback(&nsst_channel_, MediaStreamCallBack, 0);
 }
 
+//控制摄像头移动
 void HBManager::camHandle(int height, int width, bool ifMove, cv::Rect lastbox)
 {
 	//NsstPTZParam param;
@@ -232,6 +236,7 @@ void HBManager::camHandle(int height, int width, bool ifMove, cv::Rect lastbox)
 	HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, dwPTZCommand, 0, speed);
 }
 
+//控制摄像头到预置位
 void HBManager::reset(){
 	if (count > 10){
 		count = 0;
