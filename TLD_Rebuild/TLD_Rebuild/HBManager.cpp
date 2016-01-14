@@ -49,6 +49,7 @@ using namespace std;
 //}
 
 
+//回调函数 每次捕捉新的画面
 void CALLBACK pfnSrcDataCB(LONG  lRealHandle,DWORD   dwDataType,BYTE   *pBuffer,DWORD  dwBufSize,DWORD  dwUser){
 	if (doing)
 	{
@@ -77,6 +78,7 @@ void CALLBACK pfnSrcDataCB(LONG  lRealHandle,DWORD   dwDataType,BYTE   *pBuffer,
 HBManager::~HBManager(){
 }
 
+//初始化摄像头
 void HBManager::initHB(){
 	BOOL res = HB_SDVR_Init();
 	m_UserID = HB_SDVR_Login_Ex_Nvs("192.168.1.50", 8101, "admin", "admin", &m_strDeviceInfoEx);
@@ -105,6 +107,7 @@ void HBManager::initHB(){
 	nsst_channel_.stream = 0;*/
 }
 
+//初始化视频
 void HBManager::initMediaStream()
 {
 
@@ -135,93 +138,91 @@ void HBManager::initMediaStream()
 }
 
 void HBManager::thread_run(){
-		Sleep(100);
-		/*if (this->imgHeight == 0 && this->imgWidth == 0){
-			continue;
-		}*/
-		DWORD dwPTZCommand;
-		int speed = 30;
-		if (!ifMove){
-			HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, NULL, 1, 0);
-			count++;
-			std::cout << count << std::endl;
-			return;
-		}
-		count = 0;
-		int cX = lastBox.x + lastBox.width / 2;
-		int cY = lastBox.y + lastBox.height / 2;
-		int xState = 0;
-		int yState = 0;
-		cv::Rect r = cv::Rect(imgWidth / 3, imgHeight / 3, imgWidth / 3, imgHeight / 3);
-		//cv::Rect r = cv::Rect(width  / 5, height / 5, width *3/ 5, height*3 / 5);
-		//Rect r = Rect(width * 2 / 5, height * 2 / 5, width / 5, height / 5);
-		if (cX < r.x){
-			xState = 1;
-		}
-		else if (cX>r.br().x){
-			xState = 2;
-		}
-		if (cY < r.y){
-			yState = 1;
-		}
-		else if (cY>r.br().y){
-			yState = 2;
-		}
-		int state = (xState << 2) + yState;
-		float area = lastBox.width*lastBox.height;
-		switch (state)
+	Sleep(100);
+	DWORD dwPTZCommand;
+	int speed = 30;
+	if (!ifMove){
+		HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, NULL, 1, 0);
+		count++;
+		std::cout << count << std::endl;
+		return;
+	}
+	count = 0;
+	int cX = lastBox.x + lastBox.width / 2;
+	int cY = lastBox.y + lastBox.height / 2;
+	int xState = 0;
+	int yState = 0;
+	cv::Rect r = cv::Rect(imgWidth / 3, imgHeight / 3, imgWidth / 3, imgHeight / 3);
+	//cv::Rect r = cv::Rect(width  / 5, height / 5, width *3/ 5, height*3 / 5);
+	//Rect r = Rect(width * 2 / 5, height * 2 / 5, width / 5, height / 5);
+	if (cX < r.x){
+		xState = 1;
+	}
+	else if (cX>r.br().x){
+		xState = 2;
+	}
+	if (cY < r.y){
+		yState = 1;
+	}
+	else if (cY>r.br().y){
+		yState = 2;
+	}
+	int state = (xState << 2) + yState;
+	float area = lastBox.width*lastBox.height;
+	switch (state)
+	{
+	case 0x00:
+		dwPTZCommand = NULL;
+		HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, dwPTZCommand, 1, speed);
+		if (area < 320 * 240 * 0.01)
 		{
-		case 0x00:
-			dwPTZCommand = NULL;
-			HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, dwPTZCommand, 1, speed);
-			if (area < 320 * 240 * 0.01)
-			{
-				dwPTZCommand = FOCUS_NEAR;
-				HB_SDVR_PTZControl_Other(m_lPlayHandle, 0, dwPTZCommand, 0);
-			}
-			else if (area > 320 * 240 * 0.1)
-			{
-				dwPTZCommand = FOCUS_FAR;
-				HB_SDVR_PTZControl_Other(m_lPlayHandle, 0, dwPTZCommand, 0);
-			}
-			else
-			{
-				HB_SDVR_PTZControlWithSpeed_Other(m_lPlayHandle, 0, NULL, 1, speed);
-			}
-			break;
-		case 0x0A:
-			dwPTZCommand = TILT_RIGHT_DOWN;
-			break;
-		case 0x02:
-			dwPTZCommand = TILT_DOWN;
-			break;
-		case 0x08:
-			dwPTZCommand = PAN_RIGHT;
-			break;
-		case 0x04:
-			dwPTZCommand = PAN_LEFT;
-			break;
-		case 0x09:
-			dwPTZCommand = TILT_RIGHT_UP;
-			break;
-		case 0x06:
-			dwPTZCommand = TILT_LEFT_DOWN;
-			break;
-		case 0x01:
-			dwPTZCommand = TILT_UP;
-			break;
-		case 0x05:
-			dwPTZCommand = TILT_LEFT_UP;
-			break;
-		default:
-			//dwPTZCommand = FOCUS_FAR;
-			//HB_SDVR_PTZControl_Other(m_lPlayHandle, 0, dwPTZCommand, 0);
-			break;
+			dwPTZCommand = FOCUS_NEAR;
+			HB_SDVR_PTZControl_Other(m_lPlayHandle, 0, dwPTZCommand, 0);
 		}
-		HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, dwPTZCommand, 0, speed);
+		else if (area > 320 * 240 * 0.1)
+		{
+			dwPTZCommand = FOCUS_FAR;
+			HB_SDVR_PTZControl_Other(m_lPlayHandle, 0, dwPTZCommand, 0);
+		}
+		else
+		{
+			HB_SDVR_PTZControlWithSpeed_Other(m_lPlayHandle, 0, NULL, 1, speed);
+		}
+		break;
+	case 0x0A:
+		dwPTZCommand = TILT_RIGHT_DOWN;
+		break;
+	case 0x02:
+		dwPTZCommand = TILT_DOWN;
+		break;
+	case 0x08:
+		dwPTZCommand = PAN_RIGHT;
+		break;
+	case 0x04:
+		dwPTZCommand = PAN_LEFT;
+		break;
+	case 0x09:
+		dwPTZCommand = TILT_RIGHT_UP;
+		break;
+	case 0x06:
+		dwPTZCommand = TILT_LEFT_DOWN;
+		break;
+	case 0x01:
+		dwPTZCommand = TILT_UP;
+		break;
+	case 0x05:
+		dwPTZCommand = TILT_LEFT_UP;
+		break;
+	default:
+		//dwPTZCommand = FOCUS_FAR;
+		//HB_SDVR_PTZControl_Other(m_lPlayHandle, 0, dwPTZCommand, 0);
+		break;
+	}
+	HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, dwPTZCommand, 0, speed);
 
 }
 
+//控制摄像头
 void HBManager::camHandle(int height, int width, bool ifMove, cv::Rect lastbox)
 {
 	this->ifMove = ifMove;
@@ -232,6 +233,7 @@ void HBManager::camHandle(int height, int width, bool ifMove, cv::Rect lastbox)
 	t.detach();
 }
 
+//控制摄像头到预置位
 void HBManager::reset(){
 	if (count > 20){
 		count = 0;
