@@ -138,7 +138,7 @@ void humanDetect(IplImage* img, std::vector<cv::Rect>& regions)
 	//	{ { 255, 0, 255 } }
 	//};
 
-	double scale = 0.7;
+	double scale = 1;
 	IplImage* gray = cvCreateImage(cvSize(img->width, img->height), 8, 1);
 	IplImage* small_img = cvCreateImage(cvSize(cvRound(img->width / scale),
 		cvRound(img->height / scale)),
@@ -155,7 +155,7 @@ void humanDetect(IplImage* img, std::vector<cv::Rect>& regions)
 		double t = (double)cvGetTickCount();
 		CvSeq* faces = cvHaarDetectObjects(small_img, cascade, storage,
 			1.1, 2, 0/*CV_HAAR_DO_CANNY_PRUNING*/,
-			cvSize(30, 30));
+			cvSize(10, 10), cvSize(100, 100));
 		t = (double)cvGetTickCount() - t;
 		//printf( "detection time = %gms\n", t/((double)cvGetTickFrequency()*1000.) );
 		for (i = 0; i < (faces ? faces->total : 0); i++)
@@ -165,7 +165,7 @@ void humanDetect(IplImage* img, std::vector<cv::Rect>& regions)
 			if (r->x < 0 || r->x + r->width>img->width){
 				continue;
 			}
-			regions.push_back(cv::Rect(r->x, r->y, r->width, r->height));
+			regions.push_back(cv::Rect(r->x, r->y, r->width, 2*r->height));
 			//int radius;
 			//center.x = cvRound((r->x + r->width*0.5)*scale);
 			//center.y = cvRound((r->y + r->height*0.5)*scale);

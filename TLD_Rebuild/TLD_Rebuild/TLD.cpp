@@ -254,7 +254,7 @@ void TLD::humanDetect(IplImage* img, std::vector<cv::Rect>& regions)
 		double t = (double)cvGetTickCount();
 		CvSeq* faces = cvHaarDetectObjects(small_img, cascade, storage,
 			1.1, 2, 0/*CV_HAAR_DO_CANNY_PRUNING*/,
-			cvSize(30, 30));
+			cvSize(10, 10), cvSize(100, 100));
 		t = (double)cvGetTickCount() - t;
 		//printf( "detection time = %gms\n", t/((double)cvGetTickFrequency()*1000.) );
 		for (i = 0; i < (faces ? faces->total : 0); i++)

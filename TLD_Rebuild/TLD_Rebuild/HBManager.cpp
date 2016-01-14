@@ -5,6 +5,8 @@ ffmpegDecode *decoder;
 cv::Mat decodeFrame;
 bool doing = false;
 
+using namespace std;
+
 //void CALLBACK message_callback(int event_type, NsstEventCommonParam* event_param){
 //	switch (event_type){
 //		case NSSTEV_LOGIN:
@@ -114,7 +116,12 @@ void HBManager::initMediaStream()
 
 	// 设置回调函数
 	HB_SDVR_SetRealDataCallBack(m_lPlayHandle, pfnSrcDataCB, (DWORD)this);
-	HB_SDVR_PTZPreset(m_lPlayHandle, GOTO_PRESET, 61);	
+	HB_SDVR_PTZPreset(m_lPlayHandle, GOTO_PRESET, 65);	
+
+	//开启控制线程
+	ifMove = false;
+	imgHeight = 0;
+	imgWidth = 0;
 
 	//DrawParams params;
 	//params.draw_wnd = 0;
@@ -127,113 +134,106 @@ void HBManager::initMediaStream()
 	//NSSTSetMediaStreamCallback(&nsst_channel_, MediaStreamCallBack, 0);
 }
 
+void HBManager::thread_run(){
+		Sleep(100);
+		/*if (this->imgHeight == 0 && this->imgWidth == 0){
+			continue;
+		}*/
+		DWORD dwPTZCommand;
+		int speed = 30;
+		if (!ifMove){
+			HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, NULL, 1, 0);
+			count++;
+			std::cout << count << std::endl;
+			return;
+		}
+		count = 0;
+		int cX = lastBox.x + lastBox.width / 2;
+		int cY = lastBox.y + lastBox.height / 2;
+		int xState = 0;
+		int yState = 0;
+		cv::Rect r = cv::Rect(imgWidth / 3, imgHeight / 3, imgWidth / 3, imgHeight / 3);
+		//cv::Rect r = cv::Rect(width  / 5, height / 5, width *3/ 5, height*3 / 5);
+		//Rect r = Rect(width * 2 / 5, height * 2 / 5, width / 5, height / 5);
+		if (cX < r.x){
+			xState = 1;
+		}
+		else if (cX>r.br().x){
+			xState = 2;
+		}
+		if (cY < r.y){
+			yState = 1;
+		}
+		else if (cY>r.br().y){
+			yState = 2;
+		}
+		int state = (xState << 2) + yState;
+		float area = lastBox.width*lastBox.height;
+		switch (state)
+		{
+		case 0x00:
+			dwPTZCommand = NULL;
+			HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, dwPTZCommand, 1, speed);
+			if (area < 320 * 240 * 0.01)
+			{
+				dwPTZCommand = FOCUS_NEAR;
+				HB_SDVR_PTZControl_Other(m_lPlayHandle, 0, dwPTZCommand, 0);
+			}
+			else if (area > 320 * 240 * 0.1)
+			{
+				dwPTZCommand = FOCUS_FAR;
+				HB_SDVR_PTZControl_Other(m_lPlayHandle, 0, dwPTZCommand, 0);
+			}
+			else
+			{
+				HB_SDVR_PTZControlWithSpeed_Other(m_lPlayHandle, 0, NULL, 1, speed);
+			}
+			break;
+		case 0x0A:
+			dwPTZCommand = TILT_RIGHT_DOWN;
+			break;
+		case 0x02:
+			dwPTZCommand = TILT_DOWN;
+			break;
+		case 0x08:
+			dwPTZCommand = PAN_RIGHT;
+			break;
+		case 0x04:
+			dwPTZCommand = PAN_LEFT;
+			break;
+		case 0x09:
+			dwPTZCommand = TILT_RIGHT_UP;
+			break;
+		case 0x06:
+			dwPTZCommand = TILT_LEFT_DOWN;
+			break;
+		case 0x01:
+			dwPTZCommand = TILT_UP;
+			break;
+		case 0x05:
+			dwPTZCommand = TILT_LEFT_UP;
+			break;
+		default:
+			//dwPTZCommand = FOCUS_FAR;
+			//HB_SDVR_PTZControl_Other(m_lPlayHandle, 0, dwPTZCommand, 0);
+			break;
+		}
+		HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, dwPTZCommand, 0, speed);
+
+}
+
 void HBManager::camHandle(int height, int width, bool ifMove, cv::Rect lastbox)
 {
-	//NsstPTZParam param;
-	//param.speed = 20;
-	DWORD dwPTZCommand;
-	int speed = 30;
-	if (!ifMove){
-		HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, NULL, 1, 0);
-		count++;
-		std::cout << count << std::endl;
-		return;
-	}
-	count = 0;
-	//zoom
-	/*int imgArea = height*width;
-	if (lastbox.area() < imgArea / 20){
-		param.speed = 50;
-		param.action = NS_PTZ_MOVE_ZOOM_WIDE;
-		NSSTPTZControl(&nsst_channel_, &param);
-		return;
-	}
-	else if (lastbox.area()>imgArea / 10){
-		param.speed = 50;
-		param.action = NS_PTZ_MOVE_ZOOM_TELE;
-		NSSTPTZControl(&nsst_channel_, &param);
-		return;
-	}
-	else{
-		param.action = NS_PTZ_MOVE_STOP;
-		NSSTPTZControl(&nsst_channel_, &param);
-	}*/
-	
-	int cX = lastbox.x + lastbox.width / 2;
-	int cY = lastbox.y + lastbox.height / 2;
-	int xState = 0;
-	int yState = 0;
-	cv::Rect r = cv::Rect(width / 3, height / 3, width / 3, height / 3);
-	//cv::Rect r = cv::Rect(width  / 5, height / 5, width *3/ 5, height*3 / 5);
-	//Rect r = Rect(width * 2 / 5, height * 2 / 5, width / 5, height / 5);
-	if (cX < r.x){
-		xState = 1;
-	}
-	else if (cX>r.br().x){
-		xState = 2;
-	}
-	if (cY < r.y){
-		yState = 1;
-	}
-	else if (cY>r.br().y){
-		yState = 2;
-	}
-	int state = (xState << 2) + yState;
-	float area = lastbox.width*lastbox.height;
-	switch (state)
-	{
-	case 0x00:
-		dwPTZCommand = NULL;
-		HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, dwPTZCommand, 1, speed);
-		if (area < 320 * 240 * 0.02)
-		{
-			dwPTZCommand = FOCUS_NEAR;
-			HB_SDVR_PTZControl_Other(m_lPlayHandle, 0, dwPTZCommand, 0);
-		}
-		else if (area > 320 * 240 * 0.1)
-		{
-			dwPTZCommand = FOCUS_FAR;
-			HB_SDVR_PTZControl_Other(m_lPlayHandle, 0, dwPTZCommand, 0);
-		}
-		else
-		{
-			HB_SDVR_PTZControlWithSpeed_Other(m_lPlayHandle, 0, NULL, 1, speed);
-		}
-		break;
-	case 0x0A:
-		dwPTZCommand = TILT_RIGHT_DOWN;
-		break;
-	case 0x02:
-		dwPTZCommand = TILT_DOWN;
-		break;
-	case 0x08:
-		dwPTZCommand = PAN_RIGHT;
-		break;
-	case 0x04:
-		dwPTZCommand = PAN_LEFT;
-		break;
-	case 0x09:
-		dwPTZCommand = TILT_RIGHT_UP;
-		break;
-	case 0x06:
-		dwPTZCommand = TILT_LEFT_DOWN;
-		break;
-	case 0x01:
-		dwPTZCommand = TILT_UP;
-		break;
-	case 0x05:
-		dwPTZCommand = TILT_LEFT_UP;
-		break;
-	default:
-		//dwPTZCommand = FOCUS_FAR;
-		//HB_SDVR_PTZControl_Other(m_lPlayHandle, 0, dwPTZCommand, 0);
-		break;
-	}
-	HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, dwPTZCommand, 0, speed);
+	this->ifMove = ifMove;
+	this->imgWidth = width;
+	this->imgHeight = height;
+	this->lastBox = lastbox;
+	std::thread t(&HBManager::thread_run, this);
+	t.detach();
 }
 
 void HBManager::reset(){
-	if (count > 10){
+	if (count > 20){
 		count = 0;
 		std::ifstream infile("../../../one_cam/one_cam/one_cam/output.txt");
 		int pos = -1;
@@ -245,17 +245,17 @@ void HBManager::reset(){
 			case 1:
 			case 4:
 			case 7:
-				HB_SDVR_PTZPreset(m_lPlayHandle, GOTO_PRESET, 62);
+				HB_SDVR_PTZPreset(m_lPlayHandle, GOTO_PRESET, 64);
 				break;
 			case 2:
 			case 5:
 			case 8:
-				HB_SDVR_PTZPreset(m_lPlayHandle, GOTO_PRESET, 61);
+				HB_SDVR_PTZPreset(m_lPlayHandle, GOTO_PRESET, 65);
 				break;
 			case 3:
 			case 6:
 			case 9:
-				HB_SDVR_PTZPreset(m_lPlayHandle, GOTO_PRESET, 63);
+				HB_SDVR_PTZPreset(m_lPlayHandle, GOTO_PRESET, 66);
 				break;
 			default:
 				break;
