@@ -140,7 +140,7 @@ void HBManager::initMediaStream()
 void HBManager::thread_run(){
 	Sleep(100);
 	DWORD dwPTZCommand;
-	int speed = 30;
+	int speed = 10;
 	if (!ifMove){
 		HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, NULL, 1, 0);
 		count++;
@@ -152,9 +152,12 @@ void HBManager::thread_run(){
 	int cY = lastBox.y + lastBox.height / 2;
 	int xState = 0;
 	int yState = 0;
-	cv::Rect r = cv::Rect(imgWidth / 3, imgHeight / 3, imgWidth / 3, imgHeight / 3);
+	if (cX<imgWidth / 5 || cX>imgWidth / 5 * 4 || cY<imgHeight / 5 || cY>imgWidth / 5 * 4){
+		speed = 20;
+	}
+	//cv::Rect r = cv::Rect(imgWidth / 3, imgHeight / 3, imgWidth / 3, imgHeight / 3);
 	//cv::Rect r = cv::Rect(width  / 5, height / 5, width *3/ 5, height*3 / 5);
-	//Rect r = Rect(width * 2 / 5, height * 2 / 5, width / 5, height / 5);
+	cv::Rect r = cv::Rect(imgWidth * 2 / 5, imgHeight * 2 / 5, imgWidth / 5, imgHeight / 5);
 	if (cX < r.x){
 		xState = 1;
 	}
@@ -174,12 +177,12 @@ void HBManager::thread_run(){
 	case 0x00:
 		dwPTZCommand = NULL;
 		HB_SDVR_PTZControlWithSpeed(m_lPlayHandle, dwPTZCommand, 1, speed);
-		if (area < 320 * 240 * 0.01)
+		if (area < 320 * 240 * 0.015)
 		{
 			dwPTZCommand = FOCUS_NEAR;
 			HB_SDVR_PTZControl_Other(m_lPlayHandle, 0, dwPTZCommand, 0);
 		}
-		else if (area > 320 * 240 * 0.1)
+		else if (area > 320 * 240 * 0.06)
 		{
 			dwPTZCommand = FOCUS_FAR;
 			HB_SDVR_PTZControl_Other(m_lPlayHandle, 0, dwPTZCommand, 0);
